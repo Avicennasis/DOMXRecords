@@ -425,7 +425,6 @@ By default, outputs are written under `/tmp` with timestamped names.
 ---
 
 ## License
-
-MIT License. See [LICENSE](LICENSE).
-
-Credit: Léon "Avic" Simmons
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Credits
+**Author:** Léon "Avic" Simmons ([@Avicennasis](https://github.com/Avicennasis))
