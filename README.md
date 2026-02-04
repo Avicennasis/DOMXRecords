@@ -51,13 +51,67 @@ python3 -m pip install requests
 
 Create a **DigitalOcean Personal Access Token** with sufficient permissions to read/write DNS records.
 
-Export it as an environment variable:
+### Authentication Priority
+
+All scripts check for authentication credentials in this order:
+
+1. **`.env` file (recommended)** - Most secure for local development
+2. **Environment variable** - Good for CI/CD and containers
+3. **Command-line `--token`** - Convenient for one-off runs, but visible in shell history
+
+### Option 1: `.env` File (Recommended)
+
+Create a `.env` file in the project directory:
+
+```bash
+# Create the file
+echo 'DO_TOKEN="dop_v1_your_token_here"' > .env
+
+# Set restrictive permissions (IMPORTANT!)
+chmod 600 .env
+```
+
+**Why use `.env`?**
+- Token is not visible in shell history
+- Token is not visible in process listings (`ps aux`)
+- File is automatically excluded from git via `.gitignore`
+- Easy to manage across development sessions
+
+**Security Note:** Always set restrictive permissions on your `.env` file:
+```bash
+chmod 600 .env   # Only owner can read/write
+```
+
+Verify permissions:
+```bash
+ls -la .env
+# Should show: -rw-------
+```
+
+### Option 2: Environment Variable
+
+Export the token in your shell:
 
 ```bash
 export DO_TOKEN="dop_v1_..."
 ```
 
-All scripts accept `--token`, but using `DO_TOKEN` is easiest.
+Add to your shell profile (`~/.bashrc`, `~/.zshrc`) for persistence:
+
+```bash
+echo 'export DO_TOKEN="dop_v1_..."' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### Option 3: Command-Line Argument
+
+Pass the token directly (least secure - visible in shell history):
+
+```bash
+python3 do_dns_audit.py --token "dop_v1_..."
+```
+
+**Warning:** Command-line arguments are visible in `ps aux` output and shell history. Avoid this method for production use.
 
 ---
 
@@ -346,17 +400,49 @@ example.com
 
 ## Common Issues
 
-### 1) “I’m getting 401 Unauthorized”
+### 1) "I'm getting 401 Unauthorized"
 
 **Cause:** Missing/invalid DigitalOcean token, or token lacks permissions.
 **Fix:**
 
-* Confirm you exported the token:
+* If using `.env` file, verify it exists and has the correct format:
+
+  ```bash
+  cat .env
+  # Should show: DO_TOKEN="dop_v1_..."
+  ```
+* If using environment variable, confirm you exported the token:
 
   ```bash
   echo "$DO_TOKEN"
   ```
-* Create a new token in DigitalOcean with appropriate permissions.
+* Verify your token has the correct permissions in DigitalOcean dashboard.
+* Create a new token in DigitalOcean with appropriate permissions if needed.
+
+---
+
+### 1.5) "Token not being read from .env file"
+
+**Cause:** `.env` file format issues or wrong location.
+**Fix:**
+
+* Ensure the `.env` file is in the same directory where you run the script
+* Verify the format is correct (no extra spaces around `=`):
+
+  ```bash
+  # Correct format:
+  DO_TOKEN="dop_v1_abc123..."
+
+  # Also valid:
+  DO_TOKEN=dop_v1_abc123...
+  DO_TOKEN='dop_v1_abc123...'
+  ```
+* Check file permissions allow reading:
+
+  ```bash
+  ls -la .env
+  chmod 600 .env  # Fix if needed
+  ```
 
 ---
 
